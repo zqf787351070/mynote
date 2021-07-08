@@ -133,11 +133,14 @@ Sychronized 的并发策略是悲观的，无论是否产生竞争，任何数�
 两者都是阻塞式的同步，也就是说当一个线程获得了对象锁，进入同步代码块，其他访问该同步代码块的线程都必须阻塞在同步代码块外面等候。
 
 * Sychronized
+  * Sychronized 可以定义方法和代码块。其实现了自动的加锁和释放锁。
   * Sychronized 是 Java 的关键字，是在原生语法层面的互斥，需要 JVM 实现。其使用较为便利。
   * Sychronized 会在同步块的前后分别生成 monitorenter 和 monitorexit 两个字节码指令。在执行 monitorenter 指令时，首先尝试获取锁。若锁未被锁定或当前线程已经拥有锁，则将锁的计数器 +1。
     执行相应的 monitorexit 时，计数器 -1。当计数器为 0 时释放锁。若获取锁时失败，则当前线程阻塞，直到对象锁被另一个线程释放。
+  * 对于普通同步方法，锁的是当前实例对象；对于静态同步方法，锁的是当前类的 class 对象；对于同步方法快，锁的是括号里的对象。  
     
 * ReentranLock
+  * ReentranLock 只能定义代码块。其需要手动加锁和释放锁。
   * ReentranLock 是 java.util.concurrent 包下提供的一套互斥锁，需要 lock() 和 unlock() 方法配合 try/finally 代码块来完成。
   * 相比 Synchronized，ReentrantLock 类提供了一些高级功能：
     * 等待可中断。当持有锁的线程长期不释放锁时，正在等待的线程可以选择放弃等待，该功能通过 lock.lockInterruptibly() 实现；
@@ -213,10 +216,230 @@ public class ReentrantLock implements Lock, java.io.Serializable {
 当一个线程在获取锁过程中，先判断 state 的值是否为0，如果是表示没有线程持有锁，就可以尝试获取锁。当 state 的值不为0时，表示锁已经被一个线程占用了，这时会做一个判断 `current==getExclusiveOwnerThread()`，判断是看当前持有锁的线程是不是自己，如果是自己，那么将 state 的值 +1，表示重入返回即可。
 
 # 14. 什么是锁消除和锁粗化？
+* 锁消除：虚拟机根据一个对象是否真正存在同步情况，若不存在同步情况，则对该对象的访问无需经过加锁解锁的操作。锁消除的前提是 Java 必须运行在 server 模式，并且开启逃逸分析。
+* 锁粗化：锁的请求、释放都会消耗一定的系统资源，高频的锁请求不利于系统性能的优化。锁粗化就是将多次的锁请求合并成一个请求，扩大锁的范围，降低锁的请求和释放带来的性能损耗。
+
+逃逸分析：逃逸分析就是分析一个对象是否可能逃出他的作用域。如果一个对象作为参数的返回值返回，那么他在方法外部就有可能被当作一个全局对象使用，就可能会发生线程安全问题，此时就称该对象发生逃逸。
+当产生逃逸时，就不能进行锁消除。但如果没有发生逃逸，锁消除就可以带来一定的性能提升。
+
+# 15. 请谈一下 AQS 框架？
+
+## AQS 框架
 
 
 
+# 16. AQS 对资源的共享方式有哪些？
+* Exclusive(独占)：只有一个线程可以运行，如 ReentrantLock，其又可以分为公平锁和非公平锁。
+  * 公平锁：按照线程在队列中的排队顺序，先到者先拿到锁；
+  * 非公平锁：当线程要获取锁时，无视队列顺序直接去抢锁，谁抢到就是谁的；
+* Share(共享)：多个线程可同时执行，如 Semaphore、CountDownLatch、CyclicBarrier、ReadWriteLock。
 
+不同的自定义同步器争用共享资源的方式也不同。自定义同步器在实现时只需要实现共享资源 state 的获取与释放方式即可，至于具体线程等待队列的维护（如获取资源失败入队/唤醒出队等），AQS 已经在顶层实现好了。
+
+# 17. 你了解过哪些同步器，请介绍一下？
+* Semaphore 
+  * 通过计数器控制对共享资源的访问
+  * `Semaphore(int count)`：创建拥有 count 个许可的信号量
+  * `acquire()/acquire(int num)`：获取 1 个或 num 个信号量
+  * `release()/release(int num)`：释放 1 个或 num 个信号量
+* CountDownLatch  
+  * 必须发生指定数量的事件后才能继续运行（全班所有人都离开教室后再锁门）
+  * `CountDownLatch(int count)`：创建值为 count 的计数器
+  * `await()`：等待计数器归零再继续执行
+  * `countDown()`：计数 -1
+* CyclicBarrier
+  * 适用于多个线程都到达指定地点后才继续执行（四个人都到麻将馆才能开始打麻将）
+  * `CyclicBarrier(int num, Runnable action)`：指定线程数量以及到达该数量后执行的动作
+  * `await()`：等待全部线程到达
+  
+# 18. 谈一下 Java 中的线程池？
+总结来说就是 3大方法、7大参数、4种策略
+
+线程池的优势：线程复用、控制最大并发数、管理线程
+
+## 三大方法
+三大方法底层均调用 ThreadPoolExecutor 创建
+```java
+public class demo12_Executors {
+    /**
+     * Executors 工具类，三大方法
+     */
+    public static void main(String[] args) {
+        ExecutorService threadPool = Executors.newSingleThreadExecutor(); // 创建单个线程
+        ExecutorService threadPool1 = Executors.newFixedThreadPool(5); // 创建一个固定大小的线程池
+        ExecutorService threadPool2 = Executors.newCachedThreadPool(); // 创建一个大小可伸缩的线程池，遇强则强遇弱则弱
+
+        try {
+            for (int i = 0; i < 100; i++) {
+                threadPool.execute(()->{ // 使用线程池来创建线程
+                    System.out.println(Thread.currentThread().getName() + " OK!");
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            threadPool.shutdown(); // 线程池使用完毕释放资源，关闭线程池
+        }
+    }
+
+}
+```
+
+## 七大参数
+```java
+    /**
+     * corePoolSize：核心线程池大小
+     * maximumPoolSize：最大核心线程池大小
+     * keepAliveTime：超时时间(超过这个时间没人调用就会释放)
+     * unit：超时单位
+     * workQueue：阻塞队列
+     * threadFactory：线程工厂(创建线程使用，一般不用动)
+     * defaultHandler：拒绝策略
+     */
+    public ThreadPoolExecutor(int corePoolSize,
+                              int maximumPoolSize,
+                              long keepAliveTime,
+                              TimeUnit unit,
+                              BlockingQueue<Runnable> workQueue,
+                              ThreadFactory threadFactory) {
+        this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+             threadFactory, defaultHandler);
+    }
+```
+
+## 四种拒绝策略
+![java03-3.png](./picture/java03-3.png)
+
+* ThreadPoolExecutor.AbortPolicy(): 直接抛出异常
+* ThreadPoolExecutor.CallerRunsPolicy(): 哪来的回哪去（交由主进程处理）
+* ThreadPoolExecutor.DiscardPolicy(): 直接丢掉任务，不会抛出异常
+* ThreadPoolExecutor.DiscardOldestPolicy(): 尝试与最早的进行竞争，不会抛出异常
+
+
+# 19. 谈一下 volatile 关键字的作用
+volatile 保证可见性，禁止指令重排，不保证原子性。
+
+* volatile 提供 happens-before 的保证，确保一个线程对变量的修改对其他线程是可见的。当一个共享变量被 volatile 修饰时，他会保证修改的值立即更新到主存；当有线程需要读取该变量时，会去主存中读取新值。
+* volatile 通过在写操作的前后分别添加一层内存屏障，禁止上面的指令与下面的指令顺序交换，从而保证特定的操作的执行顺序。
+* volatile 不保证原子性，对于非原子操作，在多线程的时候同样存在着线程安全问题。
+
+```java
+public class demo17_volatile02 {
+    /**
+     * 原子性：
+     * 线程A在执行任务的时候，不能被打扰，也不能被分割。
+     * 要么同时成功，要么同时失败
+     * volatile 不保证原子性
+     */
+    private volatile static int num = 0;
+
+    public static void add() {
+        /**
+         * num ++; 不是原子性操作，底层执行时分为三步
+         * 1. 获得这个值
+         * 2. 执行加一
+         * 3. 写回这个值
+         */
+        num ++;
+    }
+
+    public static void main(String[] args) {
+        for (int i = 0; i < 20; i++) {
+            new Thread(()->{
+                for (int j = 0; j < 1000; j++) {
+                    add();
+                }
+            }).start();
+        }
+
+        while (Thread.activeCount() > 2) Thread.yield();
+        System.out.println(Thread.currentThread().getName() + "   " + num); // main   17923
+    }
+
+}
+```
+
+一般我们使用 lock 锁或 sychronized 关键字以及原子类来保证原子性。
+
+# 20. 谈谈你对 ThreadLocal 的理解？
+ThreadLocal 用于在一个线程内进行状态的传递。
+
+很多时候，我们在线程内调用的方法需要传入参数，而方法内部又调用很多方法，同样也需要参数，这样如果全部进行传参的话就会导致某些参数传递到所有地方。
+像这种在一个线程中横跨若干个方法调用，需要传递的对象，我们称为上下文 Context，它时一种状态，可以是用户身份、任务信息等等。
+Java 库为我们提供了 ThreadLocal 用于在同一个线程中传递同一个对象。
+
+实际上，可以把 ThreadLocal 看作一个全局的 `Map<Thread, Object>`，每个线程获取变量时，总是以 Thread 自身作为 key：
+`Object threadLocalValue = threadLocalMap.get(Thread.currentThread());`
+因此， ThreadLocal 相当于为每一个线程开辟了独立的存储空间，各个线程的 ThreadLocal 变量互不影响。
+
+最后需要注意的是，ThreadLocal 一定要在 finally 代码块中清除。
+因为当前线程执行完相关代码后，很可能会被重新放入线程池中，如果ThreadLocal没有被清除，该线程执行其他代码时，会把上一次的状态带进去。
+
+ThreadLocal 的实例化：
+`static ThreadLocal<User> threadLocalUser = new ThreadLocal<>();`
+
+ThreadLocal 的基本使用：
+```java
+void processUser(user) {
+    try {
+        threadLocalUser.set(user);
+        step1();
+        step2();
+    } finally {
+        threadLocalUser.remove();
+    }
+}
+
+void step1() {
+    User u = threadLocalUser.get();
+    log();
+    printUser();
+}
+
+void log() {
+    User u = threadLocalUser.get();
+    println(u.name);
+}
+
+void step2() {
+    User u = threadLocalUser.get();
+    checkUser(u.id);
+}
+```
+
+# 21. ThreadLocal 是怎样解决并发安全的？
+Java 中常用两种机制来解决多线程的并发问题：
+* sychronized 方式，通过锁机制，使一个线程在执行时，另一个线程等待，是一种以时间换空间的方式保证多线程并发安全；
+* ThreadLocal 方式：通过创建线程局部变量，以空间换时间的方式保证多线程并发安全；
+
+在 Spring 的源码中，就使用了 ThreadLocal 来管理连接。
+在很多开源项目中，都经常使用 ThreadLocal 来控制多线程并发问题，因为它足够的简单，我们不需要关心是否有线程安全问题，因为变量是每个线程所特有的。
+
+# 22. 为什么代码会重排序？
+在执行程序时，为了提高性能，处理器和编译器常常会对指令进行重排序，但并不是随意重排，需要满足下列两个条件：
+* 单线程环境下不能改变程序运行的结果；
+* 存在数据依赖关系的不允许重排；
+
+需要注意：重排序不会影响单线程环境的执行结果，但会破环多线程的执行语义。
+
+# 23. 什么是自旋？
+很多 Sychronized 修饰的代码块里的代码都十分简单，执行速度非常快，此时如果让等待线程都阻塞等待的话则不太值得，因为现成的阻塞涉及到用户态和内核态的切换问题。
+既然 Sychronized 里面的代码执行的非常快，那就不妨让等待锁的线程不要阻塞，而是在 sychronized 边界做忙循环，即所谓的自旋。
+如果多次循环后还没有获得锁，在阻塞线程，这样是一种更好的策略。
+
+# 24. 多线程中 sychronized 锁升级的原理是什么？
+sychronized 锁升级原理：在锁对象的对象头中有一个 threadid 字段。在第一次访问时 threadid 为空，JVM 让其持有偏向锁，并将 threadid 设置为其线程 id。
+再次进入的时候会首先判断 threadid 是否与其线程 id 一致，若一致则可以直接使用此对象；若不一致，则升级偏向锁为轻量级锁，通过自旋循环一定次数来获取锁。
+执行一定次数之后如果还没有正常获取到要使用的对象，此时就会把轻量级锁升级为重量级锁。
+此过程即 suchronized 锁的升级。
+
+锁的升级的目的：锁升级是为了减低了锁带来的性能消耗。在 Java 6 之后优化 synchronized 的实现方式，使用了偏向锁升级为轻量级锁再升级到重量级锁的方式，从而减低了锁带来的性能消耗。
+
+# 25. sychronized 的四种锁状态
+* 无锁：无锁是指没有对资源进行锁定，所有的线程都能访问并修改同一个资源，但同时只有一个线程能修改成功。
+* 偏向锁：偏向锁指当一段同步代码一直被同一个线程所访问时，即不存在多个线程的竞争时，该线程在后续访问时便会自动获得锁，从而降低锁的获取带来的损耗，提高性能。
+* 轻量级锁：轻量级锁指当锁是偏向锁的时候，却被另外的线程所访问，此时偏向锁就会升级成轻量级锁，其他的线程会通过自自旋的方式尝试获取锁，线程不会阻塞，从而提高性能。
+* 重量级锁：重量级锁指当一个线程获取锁之后，其余所有等待获得该锁的线程都会处于阻塞状态。
 
 
 
