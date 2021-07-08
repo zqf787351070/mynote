@@ -133,11 +133,13 @@ Sychronized 的并发策略是悲观的，无论是否产生竞争，任何数�
 两者都是阻塞式的同步，也就是说当一个线程获得了对象锁，进入同步代码块，其他访问该同步代码块的线程都必须阻塞在同步代码块外面等候。
 
 * Sychronized
+  * Sychronized 可以定义方法和代码块。其实现了自动的加锁和释放锁。
   * Sychronized 是 Java 的关键字，是在原生语法层面的互斥，需要 JVM 实现。其使用较为便利。
   * Sychronized 会在同步块的前后分别生成 monitorenter 和 monitorexit 两个字节码指令。在执行 monitorenter 指令时，首先尝试获取锁。若锁未被锁定或当前线程已经拥有锁，则将锁的计数器 +1。
     执行相应的 monitorexit 时，计数器 -1。当计数器为 0 时释放锁。若获取锁时失败，则当前线程阻塞，直到对象锁被另一个线程释放。
     
 * ReentranLock
+  * ReentranLock 只能定义代码块。其需要手动加锁和释放锁。
   * ReentranLock 是 java.util.concurrent 包下提供的一套互斥锁，需要 lock() 和 unlock() 方法配合 try/finally 代码块来完成。
   * 相比 Synchronized，ReentrantLock 类提供了一些高级功能：
     * 等待可中断。当持有锁的线程长期不释放锁时，正在等待的线程可以选择放弃等待，该功能通过 lock.lockInterruptibly() 实现；
@@ -213,6 +215,101 @@ public class ReentrantLock implements Lock, java.io.Serializable {
 当一个线程在获取锁过程中，先判断 state 的值是否为0，如果是表示没有线程持有锁，就可以尝试获取锁。当 state 的值不为0时，表示锁已经被一个线程占用了，这时会做一个判断 `current==getExclusiveOwnerThread()`，判断是看当前持有锁的线程是不是自己，如果是自己，那么将 state 的值 +1，表示重入返回即可。
 
 # 14. 什么是锁消除和锁粗化？
+* 锁消除：虚拟机根据一个对象是否真正存在同步情况，若不存在同步情况，则对该对象的访问无需经过加锁解锁的操作。锁消除的前提是 Java 必须运行在 server 模式，并且开启逃逸分析。
+* 锁粗化：锁的请求、释放都会消耗一定的系统资源，高频的锁请求不利于系统性能的优化。锁粗化就是将多次的锁请求合并成一个请求，扩大锁的范围，降低锁的请求和释放带来的性能损耗。
+
+逃逸分析：逃逸分析就是分析一个对象是否可能逃出他的作用域。如果一个对象作为参数的返回值返回，那么他在方法外部就有可能被当作一个全局对象使用，就可能会发生线程安全问题，此时就称该对象发生逃逸。
+当产生逃逸时，就不能进行锁消除。但如果没有发生逃逸，锁消除就可以带来一定的性能提升。
+
+# 15. 请谈一下 AQS 框架？
+
+
+# 16. AQS 对资源的共享方式有哪些？
+* Exclusive(独占)：只有一个线程可以运行，如 ReentrantLock，其又可以分为公平锁和非公平锁。
+  * 公平锁：按照线程在队列中的排队顺序，先到者先拿到锁；
+  * 非公平锁：当线程要获取锁时，无视队列顺序直接去抢锁，谁抢到就是谁的；
+* Share(共享)：多个线程可同时执行，如 Semaphore、CountDownLatch、CyclicBarrier、ReadWriteLock。
+
+不同的自定义同步器争用共享资源的方式也不同。自定义同步器在实现时只需要实现共享资源 state 的获取与释放方式即可，至于具体线程等待队列的维护（如获取资源失败入队/唤醒出队等），AQS 已经在顶层实现好了。
+
+# 17. 你了解过哪些同步器，请介绍一下？
+* Semaphore 
+  * 通过计数器控制对共享资源的访问
+  * `Semaphore(int count)`：创建拥有 count 个许可的信号量
+  * `acquire()/acquire(int num)`：获取 1 个或 num 个信号量
+  * `release()/release(int num)`：释放 1 个或 num 个信号量
+* CountDownLatch  
+  * 必须发生指定数量的事件后才能继续运行（全班所有人都离开教室后再锁门）
+  * `CountDownLatch(int count)`：创建值为 count 的计数器
+  * `await()`：等待计数器归零再继续执行
+  * `countDown()`：计数 -1
+* CyclicBarrier
+  * 适用于多个线程都到达指定地点后才继续执行（四个人都到麻将馆才能开始打麻将）
+  * `CyclicBarrier(int num, Runnable action)`：指定线程数量以及到达该数量后执行的动作
+  * `await()`：等待全部线程到达
+  
+# 18. 谈一下 Java 中的线程池？
+总结来说就是 3大方法、7大参数、4种策略
+
+线程池的优势：线程复用、控制最大并发数、管理线程
+
+## 三大方法
+三大方法底层均调用 ThreadPoolExecutor 创建
+```java
+public class demo12_Executors {
+    /**
+     * Executors 工具类，三大方法
+     */
+    public static void main(String[] args) {
+        ExecutorService threadPool = Executors.newSingleThreadExecutor(); // 创建单个线程
+        ExecutorService threadPool1 = Executors.newFixedThreadPool(5); // 创建一个固定大小的线程池
+        ExecutorService threadPool2 = Executors.newCachedThreadPool(); // 创建一个大小可伸缩的线程池，遇强则强遇弱则弱
+
+        try {
+            for (int i = 0; i < 100; i++) {
+                threadPool.execute(()->{ // 使用线程池来创建线程
+                    System.out.println(Thread.currentThread().getName() + " OK!");
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            threadPool.shutdown(); // 线程池使用完毕释放资源，关闭线程池
+        }
+    }
+
+}
+```
+
+## 七大参数
+```java
+    /**
+     * corePoolSize：核心线程池大小
+     * maximumPoolSize：最大核心线程池大小
+     * keepAliveTime：超时时间(超过这个时间没人调用就会释放)
+     * unit：超时单位
+     * workQueue：阻塞队列
+     * threadFactory：线程工厂(创建线程使用，一般不用动)
+     * defaultHandler：拒绝策略
+     */
+    public ThreadPoolExecutor(int corePoolSize,
+                              int maximumPoolSize,
+                              long keepAliveTime,
+                              TimeUnit unit,
+                              BlockingQueue<Runnable> workQueue,
+                              ThreadFactory threadFactory) {
+        this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,
+             threadFactory, defaultHandler);
+    }
+```
+
+## 四种拒绝策略
+![java03-3.png](./picture/java03-3.png)
+
+* ThreadPoolExecutor.AbortPolicy(): 直接抛出异常
+* ThreadPoolExecutor.CallerRunsPolicy(): 哪来的回哪去（交由主进程处理）
+* ThreadPoolExecutor.DiscardPolicy(): 直接丢掉任务，不会抛出异常
+* ThreadPoolExecutor.DiscardOldestPolicy(): 尝试与最早的进行竞争，不会抛出异常
 
 
 
