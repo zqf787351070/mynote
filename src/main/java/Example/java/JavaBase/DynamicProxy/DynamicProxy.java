@@ -1,4 +1,4 @@
-package JavaBase.DynamicProxy;
+package Example.java.JavaBase.DynamicProxy;
 
 import java.io.Serializable;
 import java.lang.reflect.Proxy;

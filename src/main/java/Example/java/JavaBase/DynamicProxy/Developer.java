@@ -1,4 +1,4 @@
-package JavaBase.DynamicProxy;
+package Example.java.JavaBase.DynamicProxy;
 
 /**
  * 定义抽象角色
