@@ -340,12 +340,221 @@ MySQL 提供全局加锁的命令：`Flush tables with read lock`，该命令使
 * 对于 INSERT / UPDATE / DELETE，会自动的给涉及到的数据添加排他锁。可以通过`SELECT ... FOR UPDATE;`显式的添加排他锁；
 * 对于一般的 SELECT 语句，不会添加任何锁。可以通过`SELECT ... LOCK IN SHARE MODE;`显式的添加共享锁；
 
+# 7. MySQL 有哪些数据类型？
+### 数值类型
+| 类型 | 大小 | 表示范围 |
+| --- | --- | --- |
+| TINYINT | 1 bytes | (-128, 127) |
+| SMALLINT | 2 bytes | (-32768, 32767) |
+| MEDIUMINT | 3 bytes | (-8388608, 8388607) |
+| INT | 4 bytes | (-2^32, 2^32-1) |
+| BIGINT | 8 bytes | (-2^64, 2^64-1) |
+| FLOAT | 4 bytes | |
+| DOUBLE | 8 bytes | |
+| DECIMAL(M,D) | M > D ? (M + 2) : (D + 2) | 依赖于 M，D |
 
+### 日期和时间类型
+| 类型 | 大小 | 范围 | 格式 |
+| --- | --- | --- | --- |
+| DATE | 3 | 1000-01-01/9999-12-31 | YYYY-MM-DD |
+| TIME | 3 | -838:59:59/838:59:59 | HH:MM:SS |
+| YEAR | 1 | 1902/2155 | YYYY |
+| DATETIME | 8 | 1000-01-01 00:00:00/9999-12-31 23:59:59 | YYYY-MM-DD HH:MM:SS |
+| TIMESTAMP | 4 | 1970-01-01 00:00:00/结束时间是第 2147483647 秒 | YYYYMMDD HHMMSS | 
 
+### 字符串类型
+| 类型 | 大小 | 用途 |
+| --- | --- | --- |
+| CHAR | 0-255 bytes | 定长字符串 |
+| VARCHAR | 0-65535 bytes | 变长字符串 |
+| TINYBLOB | 0-255 bytes | 不超过 255 个字符的二进制字符串 |
+| TINYTEXT | 0-65535 bytes | 短文本字符串 |
+| BLOB | 0-65535 bytes | 二进制长文本数据 |
+| TEXT | 0-65535 bytes | 长文本数据 | 
+| MEDIUMBLOB | 0-16777215 bytes | 二进制中长文本数据 |
+| MEDIUMTEXT | 0-16777215 bytes | 中长文本数据 | 
+| LONGBLOB | 0-4294967295 bytes | 二进制超长文本数据 |
+| LONGTEXT | 0-4294967295 bytes | 超长文本数据 |
 
+## 7.1 追问：char 和 varchar 的区别是什么？
+| | char | varchar |
+| --- | --- | --- |
+| 长度 | 固定长度，存储 char 值时 MySQL 会删除字符串中的末尾空格，而在前面用空格进行填充 | 可变长度 |
+| 存储方式 | char 适合存储很短(不需要额外长度)或长度近似的字符串，或者经常改变的值(不易产生碎片) | varchar 需要使用额外的 1 or 2 个字节(根据长度是否大于 255 决定)来记录字符串的长度 |
+| 存储容量 | 最大存放的字符个数为 255，与编码无关 | MySQL 行默认的最大字节限制为 65535 字节，且为所有列共享。在单列字段的情况下，varchar 一般最多只能存放 65535 - 3 个字节 |
 
+注意：
+* varchar 存储容量的计算：(行最大存储字节数 - NULL 标识列占用字节数 - 长度表示字节数) / 字符集单字符最大字节数
+  * NULL 标识列占用字节数：允许 NULL 时，占 1 个字节
+  * 长度标识符：额外标识 varchar 的长度，占 1 或 2 个字节
+* MySQL 在 4.0 版本前，varchar 长度是按照字节展示的；在 5.0 版本后，是按照字符展示的。但行的总长度还是 65535，故根据编码方式的不同，最大容量产生差异
 
+## 7.2 追问：char(50) 和 varchar(50) 的含义是什么？
+对于 char 和 varchar，声明的长度表示能保存的最大字符数。MySQL 4.0 之前 varchar(50) 指的是 50 个字节，在 5.0 之后指 50 个字符。 对于 MyISAM 引擎，推荐使用 char 类型；对于 InnoDB 引擎推荐使用 varchar。
 
+## 7.3 追问：int(10) 的含义是什么？
+int(10) 的意思是能显示的宽度的位数。比如我给 id 输入 10，那么 MySQL 会默认存储为 0000000010，即当输入不足 10 位时，会自动补全位数。
+
+# 8. MySQL 内连接、左连接、右连接有什么区别？
+* 内连接
+  * 又称等值连接，返回的是两张表公共的满足条件的部分
+  * `select e.ename, e.sal, d.dname from emp e inner dept d on e. deptno = d.deptno;`
+* 外连接
+  * 取左边表的全部和左右表公共的满足条件的部分
+  * `select e.ename, e.sal, d.dname from emp e right join dept d on e. deptno = d.deptno;`
+  * `select e.ename, e.sal, d.dname from dept d left join emp e on e. deptno = d.deptno;`
+  
+# 9. 聊一聊 MySQL 的隐式转换
+官方对于隐式转换的说明(翻译)：
+* 不做类型转换的情况：
+  * 若两个参数至少有一个是 null 时，比较的结果也为 null，此情况不做类型转换。(注意：使用`<=>`对两个 null 进行比较时会返回 1)
+  * 若两个参数都是字符串，会按照字符串进行比较，此情况不做类型转换。
+  * 若两个参数都是整数，会按照整数进行比较，此情况不做类型转换。
+* 类型转换的情况：  
+  * 若十六进制的值与非数字进行比较，会被当作二进制串进行比较！
+  * 若一个参数为 TIMESTAMP 或 DATETIME，另一个参数为常量，则常量会被转换为时间戳 TIMESTAMP 进行比较！
+  * 若一个参数为 DECIMAL，另一个参数为整数，则会将整数转换为 DECIMAL 进行比较！若另一个参数为浮点数，则会将 DECIMAL 转换为浮点数进行比较！
+  * 其他情况下，两个参数都会被转化成浮点数 DOUBLE 进行比较！
+  
+示例：
+```sql
+# 0：false；1：true
+mysql> SELECT '1234abcd' = '1234';
++---------------------+
+| '1234abcd' = '1234' |
++---------------------+
+|                   0 |
++---------------------+
+1 row in set (0.00 sec)
+
+# 0：false；1：true
+mysql> SELECT '1234abcd' = 1234;
++-------------------+
+| '1234abcd' = 1234 |
++-------------------+
+|                 1 |
++-------------------+
+1 row in set, 1 warning (0.00 sec)
+```
+
+### 隐式转换会导致的问题：
+* 隐式转换会导致 SQL 注入的问题
+* 隐式转换会导致索引失效
+* 隐式转换会导致查询结果不准确
+
+# 10. MySQL 中你使用过哪些插入方式？
+MySQL 中又下列几种常见的插入方式：普通插入、插入或更新、插入或替换、插入或忽略。
+
+### 普通插入
+`insert into table (`a`, `b`, `c`, ...) values (`a`, `b`, `c`, ...);`
+
+普通插入只需要注意字段的顺序即可，不多赘述。
+
+### 插入或更新
+需求：希望插入一条新数据，如果该记录已经存在，就更新记录。使用`insert into ... on duplicate key update...`语句实现。
+
+注意：该语句是基于唯一索引或逐渐来判断唯一(是否存在)的，如下述的例子中，就需要在 username 字段上建立唯一索引 unique，transId 设置自增即可。
+```sql
+-- 用户 zqf 充值 30 元
+INSERT INTO total_transaction (t_transId,username,total_amount,last_transTime,last_remark) 
+VALUES (null, 'zqf', 30, '2021-08-6 20:00:20', '充会员') 
+ON DUPLICATE KEY UPDATE  total_amount=total_amount + 30, last_transTime='2021-08-06 20:00:20', last_remark ='充会员';
+```
+
+### 插入或替换
+需求：希望插入一条新数据，如果记录已经存在，就删除原纪录再插入新数据。使用`replace into ...`语句实现。
+
+注意：该语句是基于唯一索引或主键来判断唯一(是否存在)的，如下述的例子中，就需要在 username 字段上建立唯一索引 unique，transId 设置自增即可。
+```sql
+-- 充值记录，只记录最近的一条充值信息
+REPLACE INTO last_transaction (transId,username,amount,trans_time,remark) 
+   VALUES (null, 'zqf', 30, '2020-06-11 20:00:20', '会员充值');
+```
+
+replace into 在使用时会对每一个索引都有影响，所以可能会导致误删数据的情况，因此不建议在多唯一索引的表中使用该语句。
+
+### 插入或忽略
+需求：希望插入一条新纪录，若记录已经存在，就什么也不做。使用`insert ignore into ...`语句实现。
+
+注意：该语句是基于唯一索引或主键来判断唯一(是否存在)的，如下述的例子中，就需要在 username 字段上建立唯一索引 unique，transId 设置自增即可。
+```sql
+-- 用户首次添加
+INSERT IGNORE INTO users_info (id, username, sex, age ,balance, create_time) 
+   VALUES (null, 'zqf', '男', 26, 0, '2020-06-11 20:00:20');
+ 
+-- 二次添加，直接忽略
+INSERT IGNORE INTO users_info (id, username, sex, age ,balance, create_time) 
+   VALUES (null, 'zqf', '男', 26, 0, '2020-06-11 21:00:20');
+```
+
+# 11. 大量数据同时插入的场景应该怎么处理？你会如何设计？
+### 单条循环插入
+有多少条数据就循环多少次，每次插入一条数据。效率极低。
+
+### 批量插入
+修改 SQL 语句，利用动态 sql 进行批量插入。
+```sql
+<insert id="insertListUser" parameterType="java.util.List">
+    INSERT INTO `db`.`user_info`
+        ( `id`,
+          `username`,
+          `password`,
+          `price`,
+          `hobby`) 
+     values
+    <foreach collection="list" item="item" separator="," index="index">
+        (null,
+        #{item.userName},
+        #{item.password},
+        #{item.price},
+        #{item.hobby})
+    </foreach>
+</insert>
+```
+
+### 分批次多次循环插入
+如果不方便修改数据库配置或需要插入的内容太多时，也可以通过后端代码控制，比如插入 10w 条数据，分 100 次，每次插入 1000 条即可
+
+## 11.1 追问：如果插入速度依旧很慢，还有没有其它的优化手段？
+1. 通过`show processlist;`命令，查询是否有其它长进程或大量短进程抢占线程池资源，看能否将部分进程转移到备库从而减轻主库压力，或者将没用的进程 kill 掉一些。
+2. 大批量导入数据时，可以先关闭索引，数据导入完毕后再打开。
+
+# 12. 建表时为什么不建议使用 null？
+观察下面三个例子：
+```sql
+mysql> select * from demo;
++----+------------+-------+------+
+| id | name       | money | age  |
++----+------------+-------+------+
+|  1 | 111        |   100 | NULL |
+|  2 | 222        |  NULL | NULL |
+|  3 | 333        |   100 | NULL |
++----+------------+-------+------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT SUM(age) from demo;
++----------+
+| SUM(age) |
++----------+
+|     NULL |
++----------+
+1 row in set (0.00 sec)
+
+mysql> SELECT count(name) from demo;
++-------------+
+| count(name) |
++-------------+
+|           2 |
++-------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM demo WHERE money=null;
+Empty set (0.00 sec)
+```
+
+* 示例一：通过 sum 函数统计一个只有 NULL 值的列的总和，比如 SUM(age) -- MySQL 中 sum 函数没有统计到任何记录时，会返回 null 而不是 0，这里可以使用 IFNULL(NULL, 0) 进行转换；
+* 示例二：select 记录数量，count 使用一个允许 NULL 的字段，比如 COUNT(name) -- MySQL 中 count(字段) 不会统计 null 值，count(*) 才能统计所有行；
+* 示例三：使用 =NULL 条件查询字段值为 NULL 的记录，比如 money=null 条件 -- MySQL 中使用比较操作符比较 null 的结果都是 null，需要使用 IS NULL 或 IS NOT NULL 进行比较；
 
 
 
