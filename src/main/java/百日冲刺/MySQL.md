@@ -488,9 +488,73 @@ INSERT IGNORE INTO users_info (id, username, sex, age ,balance, create_time)
 ```
 
 # 11. 大量数据同时插入的场景应该怎么处理？你会如何设计？
+### 单条循环插入
+有多少条数据就循环多少次，每次插入一条数据。效率极低。
 
+### 批量插入
+修改 SQL 语句，利用动态 sql 进行批量插入。
+```sql
+<insert id="insertListUser" parameterType="java.util.List">
+    INSERT INTO `db`.`user_info`
+        ( `id`,
+          `username`,
+          `password`,
+          `price`,
+          `hobby`) 
+     values
+    <foreach collection="list" item="item" separator="," index="index">
+        (null,
+        #{item.userName},
+        #{item.password},
+        #{item.price},
+        #{item.hobby})
+    </foreach>
+</insert>
+```
 
+### 分批次多次循环插入
+如果不方便修改数据库配置或需要插入的内容太多时，也可以通过后端代码控制，比如插入 10w 条数据，分 100 次，每次插入 1000 条即可
 
+## 11.1 追问：如果插入速度依旧很慢，还有没有其它的优化手段？
+1. 通过`show processlist;`命令，查询是否有其它长进程或大量短进程抢占线程池资源，看能否将部分进程转移到备库从而减轻主库压力，或者将没用的进程 kill 掉一些。
+2. 大批量导入数据时，可以先关闭索引，数据导入完毕后再打开。
+
+# 12. 建表时为什么不建议使用 null？
+观察下面三个例子：
+```sql
+mysql> select * from demo;
++----+------------+-------+------+
+| id | name       | money | age  |
++----+------------+-------+------+
+|  1 | 111        |   100 | NULL |
+|  2 | 222        |  NULL | NULL |
+|  3 | 333        |   100 | NULL |
++----+------------+-------+------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT SUM(age) from demo;
++----------+
+| SUM(age) |
++----------+
+|     NULL |
++----------+
+1 row in set (0.00 sec)
+
+mysql> SELECT count(name) from demo;
++-------------+
+| count(name) |
++-------------+
+|           2 |
++-------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM demo WHERE money=null;
+Empty set (0.00 sec)
+```
+
+* 示例一：通过 sum 函数统计一个只有 NULL 值的列的总和，比如 SUM(age) -- MySQL 中 sum 函数没有统计到任何记录时，会返回 null 而不是 0，这里可以使用 IFNULL(NULL, 0) 进行转换；
+* 示例二：select 记录数量，count 使用一个允许 NULL 的字段，比如 COUNT(name) -- MySQL 中 count(字段) 不会统计 null 值，count(*) 才能统计所有行；
+* 示例三：使用 =NULL 条件查询字段值为 NULL 的记录，比如 money=null 条件 -- MySQL 中使用比较操作符比较 null 的结果都是 null，需要使用 IS NULL 或 IS NOT NULL 进行比较；
 
 
 
