@@ -13,7 +13,7 @@ ORM (Object Relational Mapping) 即对象关系映射，其主要实现对象到
 * 使用灵活，对于复杂 SQL，动态 SQL 的编写更加灵活
 * 高度封装，使开发人员可以专注于业务逻辑，提高开发效率
 
-# 2 比较一下 MyBatis 和 Hibernate
+# 2。 比较一下 MyBatis 和 Hibernate
 MyBatis 和 Hibernate 都支持 JDBC 和 JTA 事务，两者都可以通过 SessionFactoryBuilder 由 XML 配置文件生成 SessionFactory，然后由SessionFactory 生成 Session，由 Session 来开启和执行事务和 SQL 操作。
 
 MyBatis 优势：

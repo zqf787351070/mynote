@@ -83,11 +83,26 @@ new 一个对象时，首先验证当前类是否被加载，如果没有加载�
 * 设置对象的头信息、hash 码、GC 分代年龄、元数据信息等
 * 执行构造函数初始化
 
+# 4. 简单说一下垃圾回收机制
+任何语言在运行过程中都会创建对象，这些对象都需要在内存中分配空间，如果对象只增加不减少，那么堆空间很快就会被耗尽。因此，需要在这些对象失去意义的时候，释放掉这些内容，保证内存能够提供给新的对象使用。
+对于对象内存的释放就是垃圾回收机制，即 GC (Garbage Collection)。
 
+对于java开发者来说 GC 是一个双刃剑，像 C 语言的垃圾回收是人工的，工作量大，但是可控性高。而 Java 是自动化的，但是可控性很差，甚至有时会出现内存溢出的情况。
 
+# 5. JVM 在什么时候会进行 GC？
+JVM 常在一下几种场景进行 GC 操作：
+* 在 CPU 空闲时自动进行回收；
+* 主动调用 System.gc() 后尝试进行回收，真正是否回收由 JVM 决定；
+* Eden 区已满或者新创建的对象大小大于 Eden 区剩余的空间大小，此时执行 Minor GC；
+* 升级到老年代的对象大小大于老年代剩余的空间大小，此时执行 Full GC；或者 Young GC 中发生 promotion failure 时强制 Full GC；
+* 堆内存存储满了之后进行 GC，若 GC 和非 GC 的时间比超过了 GC TimeRatio 的限制，将引发 OOM；
 
+tips：Young GC 出现 promotion failure的场景: 
+promotion failure 发生在 Young GC, 如果 Survivor 区当中存活对象的年龄达到了设定值，会就将 Survivor 区当中的对象拷贝到老年代，如果老年代的空间不足，就会发生 promotion failure， 强制进行 Full GC。
 
-
+## 5.1 介绍一下不同代空间的垃圾回收机制
+* 新生代 (Young Generation)：从年轻代空间（包括 Eden 和 Survivor 区域）回收内存被称为 Minor GC，因为 Java 对象大多数都朝生夕灭，故 Minor GC 非常频繁，回收速度也比较快。
+* 老年代 ()
 
 
 
