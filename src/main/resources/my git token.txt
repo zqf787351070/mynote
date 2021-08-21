@@ -1,3 +1,5 @@
 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
 
-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
+2021-08-17: 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
+
+git remote set-url origin https://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@github.com/zqf787351070/mynote.git
