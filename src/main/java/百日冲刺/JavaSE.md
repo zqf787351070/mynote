@@ -114,7 +114,118 @@ serialVersionUID 是可选的，如果不显式声明，则将会自动生成一
 
 如果我们在序列化过程中不希望某些成员变量被序列化，那么可以使用 transient 进行修饰。(如密码等信息)
 
+# 7. 什么时内部类？内部类的作用是什么？
+将一个类定义在另一个类或者另一个方法里面，这样的类称为内部类。内部类可以访问外部类的所有成员，包括 private 修饰的。
 
+内部类的作用：
+* 内部类可以很好的实现隐藏：非内部类是不可以使用 private 和 protected 修饰的，但是内部类可以，从而达到隐藏的作用。也可以将存在一定逻辑关系的类组织在一起，增强可读性。
+* 内部类可以间接的实现多继承：每个类都能够独立的继承一个类，所以无论外部类是否已经继承了某个类，对于内部类来说都没有影响。
+
+内部类的特点：
+* 内部类仍然是一个独立的类，在编译后内部类会被编译成独立的 .class 文件，只不过前面冠以外部类的类名和 $ 符号；
+* 内部类不能以普通的方式访问。内部类是外部类的一个成员，因此内部类可以自由的访问外部类的成员变量，无论是否是 private 的；
+* 如果将内部类声明成静态的，那么就不能随便访问外部类的成员变量了，此时就只能访问外部类的静态成员变量；
+
+## 7.1 追问：内部类有哪几种？介绍一下
+内部类分为成员内部类、局部内部类、静态内部类和匿名内部类
+
+### 成员内部类
+* 内部类就像一个实例成员一样存在于外部类当中；
+* 内部类可以访问外部类所有的成员；
+* 内部类中，this 是指内部类实例对象本身，如果要使用外部类的实例对象需要使用 类名.this 获得；
+* 内部类对象中不能有静态变量，因为其本身是外部类实例对象的一个成员；
+
+示例代码：
+```java
+public class Outer {
+    //不对外开放的
+    class Inner{
+        public void show(){
+            System.out.println("成员内部类");
+        }
+    }
+}
+```
+
+### 局部内部类
+* 局部内部类就是定义在一个方法或一个作用域当中的类；
+* 方法中的内部类没有访问修饰符，即方法内部类对包围它的方法外部的任何东西都不可见；
+* 方法内部类只能访问该方法中的局部变量；
+
+示例代码：
+```java
+class Outer {
+      public void method(){
+          class Inner {
+             String name = "局部内部类";
+          }
+      }
+  }
+```
+
+### 静态内部类
+* 使用 static 修饰的内部类（正常来说 static 不能修饰类，但内部类可以视作外部类中的一个成员，故可以使用 static 修饰）
+* 不能使用外部类的非 static 的成员变量和成员方法
+
+示例代码：
+```java
+class Outter {
+      int age1 = 10;
+      static int age2 = 20;
+      public Outter() {        
+      }
+       
+      static class Inner {
+          public method() {
+              System.out.println(age1);//错误
+              System.out.println(age2);//正确
+          }
+      }
+  }
+
+  public class Test {
+      public static void main(String[] args)  {
+          Outter.Inner inner = new Outter.Inner();
+          inner.method();
+      }
+  }
+```
+
+### 匿名内部类
+* 其本质是继承该类或实现接口的子类匿名对象
+* 一个类用于继承其他类或实现接口，并不需要增加额外的方法，只是对继承方法的实现或是覆盖。
+
+代码示例：
+```java
+public abstract class A implements B{
+
+    public void A(){
+        System.out.println("A");
+    }
+
+}
+
+public interface B{
+
+  public void B();
+
+}
+
+public class Test {
+
+  public static void main(String[] args) {
+      //new出接口或者实现类
+      A a = new A() {
+          //实现接口里未实现的方法
+          public void B() {
+            System.out.println("匿名内部类");
+          }
+      };
+      a.A();
+      a.B();
+  }
+}
+```
 
 
 

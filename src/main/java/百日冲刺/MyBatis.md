@@ -7,13 +7,13 @@ ORM (Object Relational Mapping) 即对象关系映射，其主要实现对象到
 
 目前比较常见的 ORM 框架有 MyBatis、Hibernate、JPA 等...
 
-## 1.1 常见的 MyBatis 框架有哪些优势？
+## 1.1 追问：常见的 MyBatis 框架有哪些优势？
 * 入门简单，熟悉 SQL 语句的话即学即用
 * 支持注解，面向接口开发
 * 使用灵活，对于复杂 SQL，动态 SQL 的编写更加灵活
 * 高度封装，使开发人员可以专注于业务逻辑，提高开发效率
 
-# 2 比较一下 MyBatis 和 Hibernate
+# 2。 比较一下 MyBatis 和 Hibernate
 MyBatis 和 Hibernate 都支持 JDBC 和 JTA 事务，两者都可以通过 SessionFactoryBuilder 由 XML 配置文件生成 SessionFactory，然后由SessionFactory 生成 Session，由 Session 来开启和执行事务和 SQL 操作。
 
 MyBatis 优势：
@@ -42,12 +42,12 @@ Hibernate 优势：
 
 综上所述，我们在编写 MyBatis 映射语句时，能用 # 就尽量不用 $；如果不得已一定要使用 $，则需要做好过滤，防止 SQL 注入攻击。
 
-## 3.1 什么是 SQL 注入？
+## 3.1 追问：什么是 SQL 注入？
 SQL 注入是一种代码注入技术，用于攻击数据驱动的应用，恶意的 SQL 语句被插入到执行的实体字段中，导致数据库数据泄露，更严重的会导致数据库的结构丢失。
 
 所以我们在应用中需要采取一些手段来防备 SQL 注入攻击，如在一些安全性要求很高的应用中(如银行软件)，常采用将 SQL 语句替换为存储过程的方式防止 SQL 注入。
 
-## 3.2 Mybatis 是如何防止 SQL 注入的？
+## 3.2 追问：Mybatis 是如何防止 SQL 注入的？
 MyBatis 启用了预编译功能，我们编写好的 SQL 中的 #{...} 字段将在预编译中使用占位符 ？ 代替；而在执行时，直接使用我们传入的参数替代占位符即可。
 SQL 注入只能对编译过程起作用，所以采用预编译的方式能很好地避免 SQL 注入的问题。
 
@@ -87,12 +87,12 @@ Mybatis 动态 sql 可以让我们在 xml 映射文件内，以标签的形式�
 
 常用的动态 sql 标签：`<where>/<if>/<foreach>`
 
-## 5.1 xml 文件中常用的标签有哪些？
+## 5.1 追问：xml 文件中常用的标签有哪些？
 * `<insert>/<update>/<delete>/<select>`
 * `<where>/<if>/<foreach>`
 * `<resultMap>/<parameterMap>/<sql>/<include>/<namespace>`
 
-## 5.2 MyBatis 都存在哪些银蛇形式？
+## 5.2 追问：MyBatis 都存在哪些银蛇形式？
 1. sql 列别名，将列的别名定义为对象的属性名，使查询返回结果列名与实体类的属性名保持一致，缺点是不方便维护。
 2. 使用 resultMap 标签，逐一定义查询返回结果的列明与对象属性名之间的映射关系，处理起来比较清晰，但相对麻烦。
 
@@ -107,7 +107,7 @@ Mybatis 动态 sql 可以让我们在 xml 映射文件内，以标签的形式�
 </resultMap>
 ```
 
-## 5.3 MyBatis 中有哪些接口绑定方式？
+## 5.3 追问：MyBatis 中有哪些接口绑定方式？
 1. 在接口上直接使用`@Select/@Update`等包含 sql 语句的注解来绑定，适用于 sql 语句比较简单的情况。
 2. Mapper 标签绑定，使用`<namespace> + <id>`对接口进行唯一绑定。
 

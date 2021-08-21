@@ -216,6 +216,63 @@ cglib 主要针对类实现代理，对其是否实现接口无要求。其原�
 
 [spring 常用注解详解](https://blog.csdn.net/qq_40298902/article/details/107746642?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522162823499716780255286209%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=162823499716780255286209&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~top_positive~default-1-107746642.first_rank_v2_pc_rank_v29&utm_term=springboot%E5%B8%B8%E7%94%A8%E6%B3%A8%E8%A7%A3&spm=1018.2226.3001.4187)
 
+# 7. 简述一下 Bean 的加载过程
+我们知道，Spring 的工作流主要包括下列两个环节：
+1. 解析：读取 xml 配置，扫描类文件，从配置或者注解中获取 Bean 的定义信息，注册一些扩展功能
+2. 加载：通过解析完的定义信息获取 Bean 实例
+
+Bean 加载的主要阶段：
+1. 获取 BeanName：对传入的 name 进行解析，转化成可以从 Map 中获取到的 BeanDefinition 的 Bean name；
+2. 合并 Bean 定义：对父类的定义进行合并和覆盖，如果父类还有父类，则递归合并，从而获取完整的 Bean 定义信息；
+3. 实例化：调用构造方法或者工厂方法创建 Bean 实例
+4. 属性填充：寻找并且注入依赖，依赖的 Bean 还会递归调用 getBean() 方法获取；
+5. 初始化：调用自定义的初始化内容；
+6. 获取最终的 Bean：如果是 FactoryBean 需要调用 getObject 方法，如果需要类型转换调用 TypeConverter 进行转化；
+
+getBean() 调用链流程图：
+
+![Spring04.png](./picture/Spring04.png)
+
+## 7.1 追问：什么是循环依赖？
+比如存在三个类 A B C：A 依赖 B，B 依赖 C，C 依赖 A，这三个类就形成了一个循环依赖。注意，方法的调用不构成循环依赖，循环依赖必须持有引用。
+
+循环依赖发生的场景：
+* 构造器循环依赖：依赖的对象是通过构造器传入的，发生在实例化 Bean 的时候；
+  * 构造器循环依赖本质上是无法解决的，因为调用 A 的构造器时发现依赖 B，于是调用 B 的构造器实例化 B，结果其又依赖 A，形成循环调用，导致 A 无法创建。
+* 设值循环依赖：依赖的对象通过 setter 方法传入，对象已经实例化，发生在属性填充和依赖注入的时候；
+  * 如果是设值循环依赖，可以通过对还在创建中的单例进行缓存，提前暴露该单例的方法，使得其它实例可以引用该依赖。
+  
+## 7.2 追问：循环依赖的解决思路？
+Spring 通过三级缓存进行解链。
+* 一级缓存 singletonObjects，存放完全实例化属性赋值完成的 Bean，可以直接使用
+* 二级缓存 earlySingletonObjects，存放早期 Bean 的引用，是尚未属性装配的 Bean
+* 三级缓存 singletonFactories，存放实例化完成的 Bean 工厂
+
+# 8. @Resource 和 @Autowired 有什么区别？
+* `@Resource`：默认根据名字注入，其次根据类型注入；
+* `@Autowired`：根据类型注入，结合`@Qualifie("name")`可以根据名称和类型注入，等同于`@Resource`；
+
+总结：
+
+| | @Autowired | @Resource |
+| --- | --- | --- |
+| 装配方式 | byType | byName |
+| 参数 | 只包含一个参数：required，默认为 true | 包含七个参数：其中 name 和 type 最常用 |
+| 定义 | Spring 定义的注解 | JSR-250 定义的注解 |
+
+# 9. Spring 的事务传播行为有哪些？
+事务传播行为，简单来说就是方法 B 在方法 A 中被调用，将会采取怎样的事务形式。
+
+| 传播行为 | 解释 | 
+| --- | --- |
+| propagation.REQUIRED | 表示当前方法必须运行在事务中。如果当前事务存在，方法在该事务中运行；若不存在，启动一个新的事务 |
+| propagation.SUPPORTS | 表示当前方法不需要事务上下文。如果当前事务存在，方法在该事务中运行 | 
+| propagation.MANDATORY | 表示该方法必须在事务中运行。如果当前事务不存在，则抛出异常 |
+| propagation.REQUIRED_NEW | 表示该方法必须运行在他自己的事务中。将会启动一个新事务；若当前事务存在，则挂起 |
+| propagation.NOT_SUPPORTED | 表示该方法不应该运行在事务中。如果当前事务存在，则挂起 |
+| propagation.NEVER | 表示当前方法不应该运行在事务上下文中、如果当前事务存在，则抛出异常 |
+| propagation.NESTED | 表示如果当前已经存在一个事务，则该方法在嵌套事务中运行。嵌套的事务可以独立于当前的事务进行单独的提交或回滚。如果当前事务不存在，则启动一个新的事务 |
+
 
 
 
