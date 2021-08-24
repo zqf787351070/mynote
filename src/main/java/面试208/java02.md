@@ -12,14 +12,14 @@
   
 # 3. List 与 Set 的区别？
 
-## List
+### List
 Java 中有两种 List，一种是 ArrayList，其优点在于随机访问元素；另一种是 LinkedList，它并不是为快速随机访问而设计的，其特点是快速的插入和删除。
 
 * ArrayList：底层由数组实现。其允许对元素进行快速的随机访问，但是向 List 中插入与删除元素的速度很慢；
 * LinkedList：对访问顺序进行了优化，向 List 中插入与删除的开销不大，但随机访问相对较慢；
 其具有下列方法：`addFirst() / addLast() / getFirst() / GetLast() / removeFirst() / removeLast`，这些方法使得 LinkedList 可以当做堆栈、队列和双向队列使用。
 
-## Set
+### Set
 Set 具有与 Collection 完全相同的接口，因此没有任何额外的功能。实际上 Set 就是 Collection，只是行为不同。
 
 存入 Set 的元素都必须是唯一的，Set 不存储重复元素。加入 Set 的元素必须定义 equals() 方法来保证对象的唯一性。Set 不维护元素的次序。
@@ -27,7 +27,7 @@ Set 具有与 Collection 完全相同的接口，因此没有任何额外的功�
 * HashSet：为快速查找而设计的 Set。加入 Set 的对象必须定义 hashcode()；
 * TreeSet：维护元素次序的 Set，底层为树结构，使用 TreeSet 可以从 Set 中获取有序的序列；
 
-## List 与 Set 的区别
+### List 与 Set 的区别
 * 两者均继承自 Collection 接口
 * List 特点：有序可重复；Set 特点：无需不可重复
 * List 支持 for 循环下标遍历或者迭代器；Set 只能使用迭代器（因为无序）
@@ -41,14 +41,14 @@ Set 具有与 Collection 完全相同的接口，因此没有任何额外的功�
 # 5. 说一下 HashMap 的实现原理？
 HashMap 基于 Map 接口，元素以键值对的方式存储，允许存在 null 值，其是线程不安全的
 
-## HashMap 的基本属性
+### HashMap 的基本属性
 * `static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;`：初始化大小默认 16，2 倍扩容
 * `static final float DEFAULT_LOAD_FACTOR = 0.75f;`：负载因子 0.75
 * `transient Node<K,V>[] table;`：初始化的默认数组
 * `transient int size;`：Map 大小
 * `int threshold;`：判断是否需要调整 HashMap 容量
 
-## HashMap 存储结构
+### HashMap 存储结构
 在 JDK 1.7 中采用数组 + 链表的方式存储。HashMap 采用 Node<K, V> 数组来存储 key-value，每一个键值对组成一个 Entry 实体，Entry 类实际上是一个单向的链表结构，它具有 next 指针，指向下一个 Entry 实体，以此来解决 Hash 冲突问题。
 
 HashMap 实现一个内部类 Node<K, V>，其重要属性有 hash, key, value, next。
@@ -69,7 +69,7 @@ HashMap 实现一个内部类 Node<K, V>，其重要属性有 hash, key, value, 
 * LinkedHashSet
   * LinkedHashSet 是一种有序的 Set 集合，即元素的存入与输出的顺序是相同的
   
-## Comparable接口和Comparator接口有哪些区别？
+### Comparable接口和Comparator接口有哪些区别？
 * Comparable 实现比较简单，但是当需要重新定义比较规则的时候，必须修改源代码，即修改 User 类里边的 compareTo() 方法
 * Comparator 接口不需要修改源代码，只需要在创建 TreeMap 的时候重新传入一个具有指定规则的比较器 Comparator 即可。
 
@@ -183,7 +183,7 @@ ConcurrentHashMap 锁是微细粒度的，ConcurrentHashMap 将 hash 表分为 1
 
 ![java02-5.jpg](./picture/java02-5.jpg)
 
-## ConcurrentHashMap 的原理
+### ConcurrentHashMap 的原理
 * JDK 7
   * 数据结构：ReentrantLock + Segment + HashEntry；在一个 Segment 中包含一个数组，数组的每一个位置存储的又是一个链表结构。其 get() 方法无须加锁，Node.val 使用 voltaile 保证可见性。
   * 元素查询：需要二次 hash，第一次定位到 Segment，第二次定位到元素所在链表的头部。

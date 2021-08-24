@@ -1,4 +1,4 @@
-**多线程**
+**并发编程**
 
 # 1. 线程的 run() 和 start() 有什么区别？
 * 每个线程都是通过特定的 Thread 对象所对应的 run() 方法来完成操作的，run() 方法称为线程体；通过调用 Thread 类的 start() 方法来启动一个线程。
@@ -48,7 +48,7 @@ Java 中，任何对象都可以作为锁，wait() 方法和 notify() 方法用�
 一个线程可以持有多个锁，而当线程放弃锁的时候就无法判断到底要放弃哪个锁，所以管理起来更加复杂。
 
 # 6. Java 中如何实现多线程之间的同步协作与通信协作？
-## 线程的状态以及转化图
+### 线程的状态以及转化图
 * new：新建状态。线程创建完成时为新建状态，即 new Thread(...)，此时还没有调用 start() 方法。
 * runnable：就绪状态。当调用线程的 start() 方法后，线程进入就绪状态，等待 CPU 资源。处于就绪状态的线程由 Java 运行时系统的线程调度程序(Thread scheduler)调度。
 * running：运行状态。就绪状态的线程获取到 CPU 执行权后进入运行状态，开始执行 run() 方法。
@@ -57,7 +57,7 @@ Java 中，任何对象都可以作为锁，wait() 方法和 notify() 方法用�
 
 ![java03-1.png](./picture/java03-1.png)
 
-## 线程间的同步协作
+### 线程间的同步协作
 线程之间的同步可以由下列方法实现： 
 * sychronized 同步锁
 ```java
@@ -86,7 +86,7 @@ lock.writeLock().lock();
 lock.writeLock().unlock();
 ```
 
-## 线程间的通信协作
+### 线程间的通信协作
 在线程获得锁而执行的过程中，执行到某一处时需要申请同一把锁的其他线程先执行，此时就需要当前线程让出同步锁以及 CPU (进入阻塞状态)，让其他的线程先获取同步锁以及 CPU 而执行。
 等待其他线程执行完毕并释放同步锁之后再通知当前线程唤醒 (就绪态)，继而申请同步锁和 CPU 以继续执行。
 
@@ -226,7 +226,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
 
 # 15. 请谈一下 AQS 框架？
 
-## AQS 框架
+### AQS 框架
 
 
 
@@ -259,7 +259,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
 
 线程池的优势：线程复用、控制最大并发数、管理线程
 
-## 三大方法
+### 三大方法
 三大方法底层均调用 ThreadPoolExecutor 创建
 ```java
 public class demo12_Executors {
@@ -287,7 +287,7 @@ public class demo12_Executors {
 }
 ```
 
-## 七大参数
+### 七大参数
 ```java
     /**
      * corePoolSize：核心线程池大小
@@ -309,7 +309,7 @@ public class demo12_Executors {
     }
 ```
 
-## 四种拒绝策略
+### 四种拒绝策略
 ![java03-3.png](./picture/java03-3.png)
 
 * ThreadPoolExecutor.AbortPolicy(): 直接抛出异常
@@ -433,15 +433,33 @@ Java 中常用两种机制来解决多线程的并发问题：
 sychronized 锁升级原理：在锁对象的对象头中有一个 threadid 字段。在第一次访问时 threadid 为空，JVM 让其持有偏向锁，并将 threadid 设置为其线程 id。
 再次进入的时候会首先判断 threadid 是否与其线程 id 一致，若一致则可以直接使用此对象；若不一致，则升级偏向锁为轻量级锁，通过自旋循环一定次数来获取锁。
 执行一定次数之后如果还没有正常获取到要使用的对象，此时就会把轻量级锁升级为重量级锁。
-此过程即 suchronized 锁的升级。
+此过程即 synchronized 锁的升级。
 
 锁的升级的目的：锁升级是为了减低了锁带来的性能消耗。在 Java 6 之后优化 synchronized 的实现方式，使用了偏向锁升级为轻量级锁再升级到重量级锁的方式，从而减低了锁带来的性能消耗。
 
-# 25. sychronized 的四种锁状态
+# 25. synchronized 的四种锁状态
 * 无锁：无锁是指没有对资源进行锁定，所有的线程都能访问并修改同一个资源，但同时只有一个线程能修改成功。
 * 偏向锁：偏向锁指当一段同步代码一直被同一个线程所访问时，即不存在多个线程的竞争时，该线程在后续访问时便会自动获得锁，从而降低锁的获取带来的损耗，提高性能。
 * 轻量级锁：轻量级锁指当锁是偏向锁的时候，却被另外的线程所访问，此时偏向锁就会升级成轻量级锁，其他的线程会通过自自旋的方式尝试获取锁，线程不会阻塞，从而提高性能。
 * 重量级锁：重量级锁指当一个线程获取锁之后，其余所有等待获得该锁的线程都会处于阻塞状态。
+
+# 26. synchronized 和 ReentrantLock 的区别是什么？
+* ReentrantLock 必须手动的获取与释放锁；synchronized 不需要收到你管得释放与开启；
+* ReentrantLock 是 API 级别的锁，只适用于代码块锁；synchronized 是 java 关键字级别的锁，可以修饰类、变量、方法等；
+* 二者的锁机制不同：ReentrantLock 底层调用 Unsafe 的 park 方法加锁；synchronized 操作的是对象头中的 mark word；
+
+### synchronized 实现同步的基础
+Java 中的每一个对象都可以作为锁：
+* 普通同步方法，锁的是当前的实例对象；
+* 静态同步方法，锁的是当前类的 class 对象；
+* 同步方法快，锁的是括号里的对象；
+
+# 27. Java Concurrency API 中的 Lock 接口是什么？对比同步它的优势是什么？
+Lock 接口是比 synchronized 更具扩展性的锁操作，其允许更灵活的使用锁，并且可以支持多个相关类的条件对象。Lock 的优势有：
+* 支持公平锁和非公平锁
+* 可以是线程在等待锁的时候响应中断
+* 可以让线程尝试获取锁，并在无法获取到锁的时候立即返回或者等待一段时间后返回
+* 可以在不同的范围以不同的顺序获取和释放锁
 
 
 
