@@ -66,7 +66,7 @@ public class test {
   * replace(String old,String new): 将指定字符串进行互换
   * trim(): 去除两端空格
     
-# 9.  String str = new String(“a”) + new String(“b”)会创建几个对象？
+# 9. String str = new String(“a”) + new String(“b”)会创建几个对象？
 * 对象1：new StringBuilder()；
 * 对象2：new String("a")；
 * 对象3：常量池中的"a"；
@@ -248,7 +248,7 @@ finally 代码块内的语句一定执行。一般来说的执行顺序为：cat
 * 定义了共享内存在多线程程序中读写操作的行为规范
 * 屏蔽了各种硬件和操作系统的访问差异，保证了 Java 程序在各种平台下对内存的访问效果一致
 * 解决并发问题采用的方式：限制处理器优化和使用内存屏障
-* 增强了三个同步原语 sychronized、volatile、final 的内存语义
+* 增强了三个同步原语 synchronized、volatile、final 的内存语义
 * 定义了 happens-before 规则
 
 # 27. 在 Java 中，什么时候使用重载，什么时候使用重写？
