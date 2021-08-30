@@ -214,6 +214,25 @@ class CQueue {
         return res;
     }
 }
+
+// leetcode 题解
+class CQueue {
+    LinkedList<Integer> A, B;
+    public CQueue() {
+        A = new LinkedList<Integer>();
+        B = new LinkedList<Integer>();
+    }
+    public void appendTail(int value) {
+        A.addLast(value);
+    }
+    public int deleteHead() {
+        if(!B.isEmpty()) return B.removeLast();
+        if(A.isEmpty()) return -1;
+        while(!A.isEmpty())
+            B.addLast(A.removeLast());
+        return B.removeLast();
+    }
+}
 ```
 
 ## 10-1. 斐波那切数列
@@ -2676,7 +2695,7 @@ class Solution {
 * 当 left 和 right 同时为空 ：说明 root 的左 / 右子树中都不包含 p,q ，返回 null
 * 当 left 和 right 同时不为空 ：说明 p, q 分列在 root 的 异侧 （分别在 左 / 右子树），因此 root 为最近公共祖先，返回 root
 * 当 left 为空 ，right 不为空 ：p,q 都不在 root 的左子树中，直接返回 right
-* 当 left 不为空 ， right 为空
+* 当 left 不为空 ， right 为空：p,q 都不在 root 的右子树中，直接返回 left
 
 
 **代码**
