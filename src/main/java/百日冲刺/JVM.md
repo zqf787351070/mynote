@@ -100,9 +100,35 @@ JVM 常在一下几种场景进行 GC 操作：
 tips：Young GC 出现 promotion failure的场景: 
 promotion failure 发生在 Young GC, 如果 Survivor 区当中存活对象的年龄达到了设定值，会就将 Survivor 区当中的对象拷贝到老年代，如果老年代的空间不足，就会发生 promotion failure， 强制进行 Full GC。
 
-## 5.1 介绍一下不同代空间的垃圾回收机制
+## 5.1 追问：介绍一下不同代空间的垃圾回收机制
 * 新生代 (Young Generation)：从年轻代空间（包括 Eden 和 Survivor 区域）回收内存被称为 Minor GC，因为 Java 对象大多数都朝生夕灭，故 Minor GC 非常频繁，回收速度也比较快。
-* 老年代 ()
+* 老年代 (Old Generation)：对象从新生代周期中存活下来，将会被拷贝到这里。其区域分配的空间比新生代要多。正是由于其相对大的空间，其发生 GC 的次数比新生代要少得多。清理老年代内存一般使用 Full GC。
+* 持久代 (Permanent Generation)：也成为方法区 (Method area)。用于保存类常量以及字符串字符串常量。发生在这个区域的 GC 称为 Major GC。出现 Major GC 经常伴随这至少一次 Minor GC (不绝对)。Major GC 的速度一般比 Minor GC 慢十倍以上。
+
+## 5.2 追问：说一下新生代的空间构成与执行逻辑
+新生代用于保存新创建的对象，其被划分为 3 个部分：Eden + From Survivor + To Survivor，默认空间分配比例为 8：1：1。
+
+新生代的执行逻辑：
+* 绝大多数新创建的对象被存放在 Eden 区。当一个的对象被判定死亡时，GC 就负责来回收这一部分的内存。
+* 新生代是 GC 最频繁的地方，该区域采用复制算法，将存活的对象先复制到 To Survivor 区域，然后清空 From Survivor 区域，再将两个区域“对调”。
+* 每一次在 Minor GC 中存活下来的对象，其年龄就 +1，当对象的年龄达到某一个阈值 (默认为 15，通过`-XX:MaxTenuring Threshold`设定)，这些对象就会晋升为老年代。
+* 如果某些对象在创建的时候就比较大，即其需要一块较大的连续内存空间，则其直接进入到老年代。
+
+## 5.3 追问：说一下发生 OOM 时垃圾回收机制的执行流程
+1. 对于一个很大的对象，首先尝试在 Eden 区创建，如果 Eden 区内存不够无法创建，则会触发 Minor GC。
+2. Minor GC 完成后继续尝试在 Eden 区存放，如果仍然无法存放，则尝试直接进入老年代。
+3. 如果老年代也无法存放，则触发 Full GC 清理老年代的空间。
+4. Full GC 完成后继续尝试在老年代中存放，如果仍然无法存放，抛出 OOM。
+
+# 6. Full GC、Major GC 和 Minor GC 有什么不同？
+| GC | 描述 |
+| --- | --- |
+| Minor GC | 年轻代中的 Eden 区被占满后将会触发 Minor GC |
+| Old GC | 即老年代的 GC |
+| Full GC | Full GC 是针对新生代、老年代以及永久代的全体内存空间的垃圾回收 |
+| Major GC | Major GC 用于处理方法区的对象，该区域也可能发生 GC，但概率很低 |
+| Mixed GC | G1 收集器中特有的概念。在 G1 中，一旦老年代占据堆内存的空间达到某一个阈值 (默认为 45%，通过`-XX:InitatingHeapOccupancyPercent`设定)，就会触发 Mixed GC，对年轻代和老年代一起进行回收 |
+
 
 
 

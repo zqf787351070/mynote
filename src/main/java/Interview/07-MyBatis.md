@@ -7,13 +7,13 @@ categories:
 
 # 1. MyBatis 是什么？
 
-MyBatis 是一个**半ORM（对象关系映射）框架**，其内部封装了 JDBC，开发是只需要关注 SQL 语句本身，不需要花费精力去处理加载驱动、创建连接、创建 statement 等复杂的过程。
+MyBatis 是一个半ORM（对象关系映射）框架，其内部封装了 JDBC，开发是只需要关注 SQL 语句本身，不需要花费精力去处理加载驱动、创建连接、创建 statement 等复杂的过程。
 
-通过直接编写原生态 SQL，可以严格控制 SQL 语句的执行性能，**支持动态 SQL**，灵活度高。
+通过直接编写原生态 SQL，可以严格控制 SQL 语句的执行性能，支持动态 SQL，灵活度高。
 
-MyBatis **使用 XML 或注解来配置和映射原生信息**，将实体类映射成数据库中的记录，避免了 JDBC 代码手动设置参数以及获取结果集的繁琐步骤。
+MyBatis 使用 XML 或注解来配置和映射原生信息，将实体类映射成数据库中的记录，避免了 JDBC 代码手动设置参数以及获取结果集的繁琐步骤。
 
-MyBatis **通过 XML 或注解将要执行的各种 statement 进行配置**，通过 Java 对象和 statement 中的动态参数进行映射并最终形成执行的 SQL 语句。最后由 MyBatis 框架执行 SQL 语句，并将结果映射为 Java 对象返回。
+MyBatis 通过 XML 或注解将要执行的各种 statement 进行配置，通过 Java 对象和 statement 中的动态参数进行映射并最终形成执行的 SQL 语句。最后由 MyBatis 框架执行 SQL 语句，并将结果映射为 Java 对象返回。
 
 ## MyBatis 的优缺点
 
@@ -39,7 +39,7 @@ MyBatis **通过 XML 或注解将要执行的各种 statement 进行配置**，�
 
 # 2. MyBatis 的核心组件有哪些？
 
-MyBatis 核心组件包括 **SqlSessionFactoryBuilder / SqlSessionFactory / SqlSession / Mapper**。
+MyBatis 核心组件包括 SqlSessionFactoryBuilder / SqlSessionFactory / SqlSession / Mapper。
 
 ## SqlSessionFactoryBuilder
 
@@ -76,7 +76,7 @@ Mapper 用于 MyBatis 代理 DAO，通过注解和 XML 文件可以获取对应�
 
 # 3. MyBatis 的动态 SQL 有了解么？
 
-MyBatis 可以在 xml 映射文件中以标签的形式实现动态 SQL，其原理是**根据表达式的值完成逻辑判断并动态拼接 SQL 语句**。
+MyBatis 可以在 xml 映射文件中以标签的形式实现动态 SQL，其原理是根据表达式的值完成逻辑判断并动态拼接 SQL 语句。
 
 ## 动态 SQL 标签
 
@@ -94,15 +94,15 @@ MyBatis 可以在 xml 映射文件中以标签的形式实现动态 SQL，其原
 
 # 5. MyBatis 的 DAO 接口的工作原理有了解么？
 
-**DAO 接口即 Mapper 接口**。接口的全限名就是映射文件中 namespace 的值；接口的方法名，就是映射文件中的 id 值；接口方法内的参数，就是传递给 SQL 的参数。
+DAO 接口即 Mapper 接口。接口的全限名就是映射文件中 namespace 的值；接口的方法名，就是映射文件中的 id 值；接口方法内的参数，就是传递给 SQL 的参数。
 
-Mapper 接口没有实现类，调用接口方法的时候，使用接口**全限名 + 方法名**拼接字符串作为 key 值，可**唯一定位一个 MapperStatement**。在 MyBatis 中，每一个`<select>、<insert>、<update>、<delete>`标签，都会被解析为一个 **MapperStatement对象**。
+Mapper 接口没有实现类，调用接口方法的时候，使用接口全限名 + 方法名拼接字符串作为 key 值，可唯一定位一个 MapperStatement。在 MyBatis 中，每一个`<select>、<insert>、<update>、<delete>`标签，都会被解析为一个 MapperStatement对象。
 
-**Mapper 接口的工作原理是 JDK 动态代理**，MyBatis 运行时会使用 JDK 动态代理为 Mapper 接口生成代理对象 proxy，代理对象会拦截接口方法，转而执行 MapperStatement 所代表的 SQL，然后将 SQL 执行结果返回。
+Mapper 接口的工作原理是 JDK 动态代理，MyBatis 运行时会使用 JDK 动态代理为 Mapper 接口生成代理对象 proxy，代理对象会拦截接口方法，转而执行 MapperStatement 所代表的 SQL，然后将 SQL 执行结果返回。
 
 ## DAO 接口中的方法可以重载么？
 
-不可以。因为 xml 文件中使用的是**全限名 + 方法名**的保存和寻找策略。
+不可以。因为 xml 文件中使用的是全限名 + 方法名的保存和寻找策略。
 
 ## 不同映射文件 xml 中的 id 可以重复么？
 
@@ -110,7 +110,7 @@ Mapper 接口没有实现类，调用接口方法的时候，使用接口**全�
 
 # 6. MyBatis 中 # 和 $ 的区别
 
-**能用 # 就尽量不用 $**
+能用 # 就尽量不用 $
 
 * \# 是预编译处理，是占位符；$ 是字符串替换，是拼接符
 * Mybatis 在处理 # 时，会将 sql 中的 \# 替换为 ？，并调用 PreparedStatement 来赋值；在处理 $ 是，就是把 $ 替换成变量的值，调用 Statement 来赋值
@@ -121,10 +121,10 @@ Mapper 接口没有实现类，调用接口方法的时候，使用接口**全�
 
 分为一级缓存和二级缓存。
 
-* **一级缓存（同一个SqlSession）**
+* 一级缓存（同一个SqlSession）
 基于 HashMap 的本地缓存，其存储作用域为 Session，当 Session flush 或 close 之后，该 Session 中的所有缓存就将清空，默认打开一级缓存。
 
-* **二级缓存（同一个SqlSessionFactory）**
+* 二级缓存（同一个SqlSessionFactory）
 二级缓存与一级缓存其机制相同，默认也是采用 HashMap 的本地存储，不同在于其存储作用域为 Mapper(Namespace)，并且可自定义存储源。
 
 # 8. MyBatis 的接口绑定是什么？有哪些方式？

@@ -1,3 +1,5 @@
+**Java SE**
+
 # 1. JDK、JRE、JVM 有什么区别？
 * JDK：Java Development Kit，Java开发工具包
 * JRE：Java Runtime Environment，Java运行环境
@@ -12,7 +14,7 @@ JDK 中包含 JRE，JDK 中存在一个名为 jre 的目录，其中包含两个
 # 3. final 关键字的作用？
 * final 修饰的成员变量必须在声明的同时赋值，一旦创建其值不可修改
 * final 修饰的方法不可被子类重写
-* final 修饰的类中的方法默认是 final 的
+* final 修饰的类中的方法默认是 final 的，且被修饰的类不可被继承
 * private 修饰的方法默认是 final 的
 
 # 4. Java 中 Math 提供的几个取整方法
@@ -64,13 +66,18 @@ public class test {
   * replace(String old,String new): 将指定字符串进行互换
   * trim(): 去除两端空格
     
-# 9.  String str = new String(“a”) + new String(“b”)会创建几个对象？
-对象1：new StringBuilder()；对象2：new String("a")；对象3：常量池中的"a"；对象4：new String("b")；对象5：常量池中的"b"；对象6：new String("ab")
+# 9. String str = new String(“a”) + new String(“b”)会创建几个对象？
+* 对象1：new StringBuilder()；
+* 对象2：new String("a")；
+* 对象3：常量池中的"a"；
+* 对象4：new String("b")；
+* 对象5：常量池中的"b"；
+* 对象6：new String("ab")
 
-## String str = "a"+"b";产生几个对象？
+### String str = "a"+"b";产生几个对象？
 答案是3个，字符串常量区存储"a","b","ab"三个对象
 
-## String str = "a"+new String("b");产生几个对象？
+### String str = "a"+new String("b");产生几个对象？
 答案是3个，字符串常量区存储"a","b"，堆中存储new String("b")的对象。
 
 # 10. String.intern() 方法
@@ -123,19 +130,19 @@ public class StringIntern {
 
 # 14. BIO / NIO / AIO 有什么区别？
 
-## 同步与异步
+### 同步与异步
 IO 操作主要分为两个步骤，即发起 IO 请求和实际 IO 操作，同步 IO 与异步 IO 的区别就在于第二个步骤是否阻塞。
 
 * 若实际 IO 操作阻塞请求进程，即请求进程需要等待或者轮询查看 IO 操作是否就绪，则为同步 IO。
 * 若实际 IO 操作并不阻塞请求进程，而是由操作系统来进行实际 IO 操作并将结果返回，则为异步 IO。
 
-## 阻塞与非阻塞
+### 阻塞与非阻塞
 IO 操作主要分为两个步骤，即发起 IO 请求和实际 IO 操作，阻塞 IO 与非阻塞 IO 的区别就在于第一个步骤是否阻塞。
 
 * 若发起 IO 请求后请求线程一直等待实际 IO 操作完成，则为阻塞 IO。
 * 若发起 IO 请求后请求线程返回而不会一直等待，即为非阻塞 IO。
 
-## BIO / NIO / AIO
+### BIO / NIO / AIO
 
 * BIO 表示同步阻塞式 IO，服务器实现模式为一个连接一个线程，即客户端有连接请求时服务器端就需要启动一个线程进行处理，如果这个连接不做任何事情会造成不必要的线程开销，当然可以通过线程池机制改善。
 * NIO 表示同步非阻塞 IO，服务器实现模式为一个请求一个线程，即客户端发送的连接请求都会注册到多路复用器上，多路复用器轮询到连接有 I/O 请求时才启动一个线程进行处理。
@@ -166,15 +173,15 @@ Java 反射机制是在运行状态中，对于任意一个类，都能够知道
 
 # 18. 为什么要使用克隆？如何实现对象克隆？深拷贝和浅拷贝的区别是什么？
 
-## 为什么使用克隆？
+### 为什么使用克隆？
 想对一个对象进行复制，又想保留原有的对象进行接下来的操作，此时需要克隆。
 
-## 如何实现对象克隆？
+### 如何实现对象克隆？
 * 实现 Cloneable 接口，重写 clone() 方法
 * 实现 Serializable 接口，通过对象的序列化和反序列化实现克隆，该方式可以实现真正的深克隆
 * BeanUtils，apache，Spring 都提供了 bean 工具，但都是浅克隆
 
-## 深拷贝和浅拷贝的区别是什么？
+### 深拷贝和浅拷贝的区别是什么？
 * 浅拷贝：仅仅克隆基本类型变量，不克隆引用类型变量，即克隆得到的新对象的引用类型变量地址与原对象相同
 * 深拷贝：既克隆基本类型变量，又克隆引用类型变量
 
@@ -191,8 +198,8 @@ Java 反射机制是在运行状态中，对于任意一个类，都能够知道
 * finally 用于捕捉到异常后的收尾处理，finally 代码块内的语句无论是否发生异常，都会执行，常用于一些流的关闭
 * finalize 方法用于垃圾回收。一般情况下不需要我们实现 finalize()，只有当对象被回收的时候需要释放一些资源才会实现。比如 socket 链接，在对象初始化时创建，在整个生命周期内有效，需要实现 finalize() 在其被回收时关闭这个链接
 
-## try-catch-finally 中，如果 catch 中 return 了，finally 还会执行吗？
-finally 代码块内的语句一定执行。一般来说的执行顺序为：catch --> finally -- > catch 中的 return
+### try-catch-finally 中，如果 catch 中 return 了，finally 还会执行吗？
+finally 代码块内的语句一定执行。一般来说的执行顺序为：catch --> finally --> catch 中的 return
 
 # 21. 常见的异常类有哪些？
 * NullPointerException：空指针异常；
@@ -212,7 +219,7 @@ finally 代码块内的语句一定执行。一般来说的执行顺序为：cat
 当集合需要添加新的对象时，首先调用这个对象的 hashcode() 方法，获得对应的 hashcode 值，将该值与 hashmap 中存储的对象的 hashcode 作比较（hashmap 维护一个 table 存储所有对象的 hashcode）。
 如果 table 中不存在该 hashcode 值，则将该对象存入；如果有，就调用 equals() 方法将两个元素进行比较，不同则存入，相同则不存入。
 
-## equals 和 hashcode 的关系
+### equals 和 hashcode 的关系
 * 若 hashcode 值相等，则 euqals 不一定为 true；若 hashcode 不相等，则 equals 一定为 false。
 * 若 equals 为 true，则 hashcode 一定相等；若 equals 为 false，则 hashcode 不一定相等。
 
@@ -241,7 +248,7 @@ finally 代码块内的语句一定执行。一般来说的执行顺序为：cat
 * 定义了共享内存在多线程程序中读写操作的行为规范
 * 屏蔽了各种硬件和操作系统的访问差异，保证了 Java 程序在各种平台下对内存的访问效果一致
 * 解决并发问题采用的方式：限制处理器优化和使用内存屏障
-* 增强了三个同步原语 sychronized、volatile、final 的内存语义
+* 增强了三个同步原语 synchronized、volatile、final 的内存语义
 * 定义了 happens-before 规则
 
 # 27. 在 Java 中，什么时候使用重载，什么时候使用重写？
