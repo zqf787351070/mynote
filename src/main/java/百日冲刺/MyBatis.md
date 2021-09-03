@@ -14,7 +14,7 @@ ORM (Object Relational Mapping) 即对象关系映射，其主要实现对象到
 * 高度封装，使开发人员可以专注于业务逻辑，提高开发效率
 
 # 2。 比较一下 MyBatis 和 Hibernate
-MyBatis 和 Hibernate 都支持 JDBC 和 JTA 事务，两者都可以通过 SessionFactoryBuilder 由 XML 配置文件生成 SessionFactory，然后由SessionFactory 生成 Session，由 Session 来开启和执行事务和 SQL 操作。
+MyBatis 和 Hibernate 都支持 JDBC 和事务，两者都可以通过 SessionFactoryBuilder 由 XML 配置文件生成 SessionFactory，然后由SessionFactory 生成 Session，由 Session 来开启和执行事务和 SQL 操作。
 
 MyBatis 优势：
 * MyBatis 可以进行更为细致的 SQL 优化，减少查询字段
@@ -58,7 +58,7 @@ MyBatis 是一个持久层的框架
 * 高效的映射关系，支持对象与数据库中的 ORM 字段关系映射
 * 提供 XML 标签，支持动态 SQL
 
-## 4.1 追问：说一下 NyBatis 的原理和工作流程
+## 4.1 追问：说一下 MyBatis 的原理和工作流程
 1. 读取 MyBatis 配置文件：mybatis-config.xml 提供 MyBatis 的全局配置文件
 2. 加载映射文件xml：加载 SQL 映射文件，该文件配置了操作数据库的 SQL 语句
 3. 构造会话工厂：通过配置信息构造会话工厂 SqlSessionFactory
@@ -92,7 +92,7 @@ Mybatis 动态 sql 可以让我们在 xml 映射文件内，以标签的形式�
 * `<where>/<if>/<foreach>`
 * `<resultMap>/<parameterMap>/<sql>/<include>/<namespace>`
 
-## 5.2 追问：MyBatis 都存在哪些银蛇形式？
+## 5.2 追问：MyBatis 都存在哪些映射形式？
 1. sql 列别名，将列的别名定义为对象的属性名，使查询返回结果列名与实体类的属性名保持一致，缺点是不方便维护。
 2. 使用 resultMap 标签，逐一定义查询返回结果的列明与对象属性名之间的映射关系，处理起来比较清晰，但相对麻烦。
 
