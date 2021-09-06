@@ -91,6 +91,17 @@ categories:
 * D：类中有 abstract 方法，则必须用 abstract 修饰类；但 abstract 类中可以没有抽象方法；
 
 ---
+![java23.png](./picture/java23.png)
+
+解析：
+* == 比较的是地址，看是否是同一个对象；equals 比较的是值；
+* `.toLowerCase()`方法底层为 new 一个新的字符串返回，存在于堆中，故地址不同，不是同一个对象，返回 false；
+
+---
+![java24.png](./picture/java24.png)
+
+---
+
 
 
 # Java 集合相关
@@ -104,6 +115,11 @@ categories:
 解析：
 * 如果在循环过程中调用集合的 remove() 方法，就会导致在循环过程中 list.size() 变化，导致错误；
 * 如果需要在循环过程中删除集合中的某个元素，需要调用迭代器 Iterator 的 remove() 方法；
+
+---
+![java28.png](./picture/java28.png)
+
+解析：集合框架中线程安全的有：喂(Vector)，S(Stack)H(HashTable)E(Enumeration);
 
 ---
 
@@ -126,6 +142,23 @@ categories:
 ![java22.png](./picture/java22.png)
 
 ---
+![java25.png](./picture/java25.png)
+
+解析：java 中，判断一块内存空间是否符合垃圾收集器的收集标准只有两个：
+* 给对象赋值为 null，并且之后没在调用过；
+* 给对象分配了新值，重新分配了内存空间；
+
+---
+![java26.png](./picture/java26.png)
+
+解析：
+* A：在虚拟机中提供了 3 中类加载器：引导（Bootstrap）类加载器、扩展（Extension）类加载器、系统（System）类加载器（也称应用类加载器）；
+* B：类加载器不加载接口；
+* D：装载一个不存在的类的时候，因为采用的双亲加载模式，所以强制加载会直接报错；
+* F：自定义类加载器继承 ClassLoader 后重写了 findClass() 方法加载指定路径上的 class；
+
+---
+
 
 # 计算机基础
 
@@ -134,6 +167,10 @@ categories:
 
 解析：位 < 字节 < 字 < 双字
 
+---
+![java27.png](./picture/java27.png)
+
+---
 
 
 # Java 代码题
