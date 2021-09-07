@@ -101,7 +101,26 @@ categories:
 ![java24.png](./picture/java24.png)
 
 ---
+![java29.png](./picture/java29.png)
 
+解析：java 构造方法可以由任意访问修饰符修饰，如 public, protected, private 或没有修饰，但是不能被非访问性质的修饰符修饰，如 abstract, static, final, native, synchronized。
+
+---
+![java30.png](./picture/java30.png)
+
+解析：flush() 方法用于强制将缓冲区中的字符流或字节流输出，其目的是如果输出流输出到缓冲区后，缓冲区被有被填满，那么缓冲区将会一直等待被填满。所以在关闭输出流之后要调用 flush()。
+
+---
+![java31.png](./picture/java31.png)
+
+---
+![java32.png](./picture/java32.png)
+
+解析：
+* 接口中的方法默认为`public abstract`;
+* 接口中的变量默认为`public static final`;
+
+---
 
 
 # Java 集合相关
